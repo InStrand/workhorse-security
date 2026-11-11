@@ -1,0 +1,27 @@
+# Agent configuration files are privileged paths. A hook command, an MCP server or a permission
+# allow entry in one of these files takes effect on the machine of everyone who opens the
+# repository, once the folder is trusted.
+rules:
+  - id: agent-config-privileged-entry
+    languages: [json]
+    severity: ERROR
+    message: >-
+      This agent configuration entry runs a command, connects to a server or allows a tool
+      without asking, on the machine of everyone who opens this repository. A person who owns
+      the agent configuration must review it.
+    metadata:
+      control: agent-configuration
+      references:
+        - https://code.claude.com/docs/en/hooks
+        - https://code.claude.com/docs/en/mcp
+    paths:
+      include:
+        - ".claude/**"
+        - ".mcp.json"
+        - ".cursor/**"
+        - ".codex/**"
+        - ".vscode/mcp.json"
+    pattern-either:
+      - pattern: '"command": $VALUE'
+      - pattern: '"url": $VALUE'
+      - pattern: '"allow": [...]'

@@ -1,0 +1,4 @@
+{
+  "about": "A pull_request workflow with a read-only token, no persisted credentials and a SHA-pinned action.",
+  "expect": {}
+}

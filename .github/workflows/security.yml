@@ -1,0 +1,75 @@
+# The security gate, as a reusable workflow. A repository calls it from its own workflow on
+# pull_request and push (see workflows/security.yml for the caller to copy).
+#
+# One job with one name always runs, so it can be a required check. Which scanners apply is
+# decided inside the job. The job holds no secret and reads only the repository's contents.
+name: security
+
+on:
+  workflow_call:
+    inputs:
+      pack-repository:
+        description: The repository that holds the pack.
+        type: string
+        default: InStrand/workhorse-security
+      pack-ref:
+        description: The commit of the pack to run. A caller in another repository sets this to the commit it pins in its `uses:` line.
+        type: string
+        default: ""
+
+permissions: {}
+
+jobs:
+  security-gate:
+    name: security-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      # GitHub gives a called workflow no documented way to learn its own commit, so a caller in
+      # another repository states it. Without it the pack's code would not be pinned.
+      - name: Require a pinned pack
+        if: ${{ inputs.pack-ref == '' && inputs.pack-repository != github.repository }}
+        run: |
+          echo "::error::Set pack-ref to the pack commit pinned in the uses: line."
+          exit 1
+      - name: Check out the change
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          path: target
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check out the pack
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: ${{ inputs.pack-repository }}
+          ref: ${{ inputs.pack-ref || github.sha }}
+          path: pack
+          persist-credentials: false
+      - name: Install the pinned tools
+        run: |
+          node --version
+          git -C pack rev-parse HEAD
+          node pack/bin/whs.mjs install
+      - name: Gate the change
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          base="$BASE"
+          # A new branch has no previous commit. Compare it with where it left the default
+          # branch. The first push of the default branch itself has no base: every finding counts.
+          if [ -z "${base//0/}" ]; then
+            base=""
+            if [ "$GITHUB_REF_NAME" != "$DEFAULT_BRANCH" ]; then
+              base=$(git -C target merge-base "origin/$DEFAULT_BRANCH" "$HEAD" || true)
+            fi
+          fi
+          if [ -n "$base" ]; then
+            node pack/bin/whs.mjs gate target --base "$base" --head "$HEAD" --out "$RUNNER_TEMP/whs"
+          else
+            node pack/bin/whs.mjs gate target --head "$HEAD" --out "$RUNNER_TEMP/whs"
+          fi

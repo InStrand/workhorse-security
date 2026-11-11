@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# Pre-push gate for workhorse-security itself (activated by scripts/dev-setup.sh). The pattern is
+# the one flywheel-teams uses.
+#
+# 1. Confidentiality: this repository must be able to become public. A machine-level,
+#    never-committed file lists one term per line (customer names, people, project identifiers).
+#    Until that file exists and holds a term, or the single line "no-terms", every push is
+#    refused. A push whose outgoing commits (diffs and messages) or ref names contain a listed
+#    term is refused. The file lives outside every repository, so one list covers every
+#    repository on the machine that uses this gate, and the terms never reach GitHub:
+#      $WHS_CONFIDENTIAL_TERMS, else ${XDG_CONFIG_HOME:-~/.config}/flywheel-teams/confidential-terms
+# 2. Tests: test/run.sh must pass, run from a `git archive` extraction of each pushed commit, so
+#    the pushed commit is what is tested, not the working tree.
+#
+# Never bypass this hook. A refusal is a defect in the commit, not an obstacle.
+set -euo pipefail
+
+root=$(git rev-parse --show-toplevel)
+terms="${WHS_CONFIDENTIAL_TERMS:-${XDG_CONFIG_HOME:-$HOME/.config}/flywheel-teams/confidential-terms}"
+zero=0000000000000000000000000000000000000000
+status=0
+tips=""
+
+if [ ! -s "$terms" ]; then
+  printf 'pre-push: refused. No confidential term list at %s.\n' "$terms" >&2
+  printf '  Add one term per line (customer names, people, identifiers), or the single line no-terms to opt out.\n' >&2
+  exit 1
+fi
+clean=$(tr -d '\r' < "$terms" | grep -v -e '^[[:space:]]*$' -e '^#' -e '^no-terms$' || true)
+
+# Reads text on stdin; refuses when it contains a listed term. $1 names what was scanned.
+check_text() {
+  local hits
+  hits=$(grep -i -n -F -e "$clean" || true)
+  if [ -n "$hits" ]; then
+    printf 'pre-push: refused. %s contains a confidential term:\n' "$1" >&2
+    printf '%s\n' "$hits" | head -20 | sed 's/^/  /' >&2
+    return 1
+  fi
+}
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "$zero" ] && continue          # deleting a remote ref
+  if [ -n "$clean" ]; then
+    printf '%s\n%s\n' "$local_ref" "$remote_ref" | check_text "A ref name" || status=1
+    if [ "$remote_sha" = "$zero" ]; then
+      # New branch: everything not already on a remote.
+      git log -p --format='commit %H%n%s%n%b' "$local_sha" --not --remotes -- | check_text "An outgoing commit" || status=1
+    else
+      git log -p --format='commit %H%n%s%n%b' "$remote_sha..$local_sha" -- | check_text "An outgoing commit" || status=1
+    fi
+  fi
+  tips="$tips $local_sha"
+done
+
+[ "$status" -eq 0 ] || exit 1
+
+# Tests run against each pushed commit, extracted from git, never against the working tree.
+for sha in $tips; do
+  tmp=$(mktemp -d "${TMPDIR:-/tmp}/whs-prepush.XXXXXX")
+  git archive "$sha" | tar -x -C "$tmp"
+  if [ -x "$tmp/test/run.sh" ]; then
+    printf 'pre-push: running test/run.sh on %s\n' "${sha:0:12}" >&2
+    (cd "$tmp" && ./test/run.sh) || status=1
+  else
+    printf 'pre-push: refused. %s has no executable test/run.sh\n' "${sha:0:12}" >&2
+    status=1
+  fi
+  rm -rf "$tmp"
+done
+[ "$root" ] || exit 2
+exit "$status"

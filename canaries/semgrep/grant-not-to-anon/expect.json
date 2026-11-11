@@ -1,0 +1,4 @@
+{
+  "about": "Schema usage for anon, grants to other roles, a revoke from anon, and a table whose name contains the word.",
+  "expect": {}
+}

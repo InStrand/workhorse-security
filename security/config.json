@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "repository": "workhorse-security",
+  "tier": "workhorse",
+  "data_paths": [],
+  "exceptions": [
+    {
+      "paths": ["canaries/"],
+      "reason": "Known-bad fixtures. `whs canary` proves every check against them on every push.",
+      "owner": "Ryan Griffin"
+    }
+  ]
+}

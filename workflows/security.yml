@@ -1,0 +1,23 @@
+# Copy this file to .github/workflows/security.yml in a repository that adopts the pack.
+#
+# Replace PACK_COMMIT in both places with one full commit SHA of the pack. Pinning by commit is
+# what makes the scanners, their versions and the rules the ones that were reviewed.
+#
+# Then make "security / security-gate" a required check in the branch ruleset.
+name: security
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  security:
+    name: security
+    permissions:
+      contents: read
+    uses: InStrand/workhorse-security/.github/workflows/security.yml@PACK_COMMIT
+    with:
+      pack-ref: PACK_COMMIT

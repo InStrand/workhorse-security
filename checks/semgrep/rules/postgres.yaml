@@ -1,0 +1,42 @@
+# Postgres and Supabase migration rules. These read SQL source as text, so they are change-time
+# tripwires. The deployed catalogue is the authority (adapters/supabase), because a function body
+# or a grant can change without a file changing.
+rules:
+  - id: postgres-definer-without-search-path
+    languages: [regex]
+    severity: ERROR
+    message: >-
+      This SECURITY DEFINER function or procedure does not set search_path. It runs with its
+      owner's rights and resolves unqualified names through the caller's search_path, so a caller
+      who can create objects in an earlier schema can replace what it calls. Add
+      "set search_path = ''" (or a fixed list) to the definition and qualify every name.
+    metadata:
+      control: definer-search-path
+      references:
+        - https://www.postgresql.org/docs/current/sql-createfunction.html
+        - https://supabase.com/docs/guides/database/database-advisors?lint=0011_function_search_path_mutable
+    paths:
+      include: ["*.sql"]
+    # A definition's attributes sit before the body or after it. Both lookaheads read the header
+    # up to the dollar-quoted body, skip the body, then read the trailer up to the semicolon, so
+    # text inside the body never counts. A later "alter function <same name> ... set search_path"
+    # in the same file also satisfies the rule. The match is the name, up to the argument list.
+    pattern-regex: >-
+      (?is)\bcreate\s+(?:or\s+replace\s+)?(?:function|procedure)\s+(?<name>[\w."]+)(?![\w."])(?=(?:(?!\$(?:[a-z_]\w*)?\$)[^;])*?\bsecurity\s+definer\b|(?:(?!\$(?:[a-z_]\w*)?\$)[^;])*(?<qa>\$(?:[a-z_]\w*)?\$).*?\k<qa>[^;]*?\bsecurity\s+definer\b)(?!(?:(?!\$(?:[a-z_]\w*)?\$)[^;])*?\bset\s+search_path\b|(?:(?!\$(?:[a-z_]\w*)?\$)[^;])*(?<qb>\$(?:[a-z_]\w*)?\$).*?\k<qb>[^;]*?\bset\s+search_path\b)(?!.*?\balter\s+(?:function|procedure)\s+\k<name>(?![\w.])[^;]*?\bset\s+search_path\b)
+
+  - id: postgres-grant-to-anon
+    languages: [regex]
+    severity: ERROR
+    message: >-
+      This statement grants a privilege to the anonymous role. Anyone who holds the project's
+      public key can use it. Confirm that row-level security or the function's own checks cover
+      every row and argument, then record the decision as an exception with an owner.
+    metadata:
+      control: anonymous-grants
+      references:
+        - https://supabase.com/docs/guides/database/postgres/row-level-security
+    paths:
+      include: ["*.sql"]
+    # Usage on a schema exposes nothing by itself and is in every Supabase project, so it is
+    # left out. Everything else granted to anon is reported, including default privileges.
+    pattern-regex: (?i)\bgrant\b(?!\s+usage\s+on\s+schema\b)[^;]*?\bto\b[^;]*?\banon\b

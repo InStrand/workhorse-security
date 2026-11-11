@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "sources": [
+    {
+      "id": "cloudflare-security-audit",
+      "role": "process",
+      "required": true,
+      "provides": "The audit process: reconnaissance into a coverage ledger, hunting by ledger unit with coverage critics, a fresh verifier for every candidate, a strict findings schema with validators, and runs that build on earlier runs. Also the general attack classes and ten domain companion files.",
+      "licence": "MIT",
+      "git": "https://github.com/cloudflare/security-audit-skill",
+      "commit": "c1c8a8c1471069fb0e188eeaff69b8e8db6564a8",
+      "subdir": "skills/security-audit",
+      "marker": "validate-findings.cjs"
+    },
+    {
+      "id": "jsm-security-audit-for-saas",
+      "role": "domain",
+      "required": false,
+      "provides": "SaaS and Supabase domain knowledge: the fifteen-domain sweep, the axioms and operators, the subagent briefs (RLS auditor, red team, recovery-path walker, admin-escalation mapper, webhook divergence, billing, entitlements), the fail-open and API auth scripts, and the billing checks.",
+      "licence": "Proprietary, by subscription. Read where it is installed. Never copied into this repository, a prompt file or a record.",
+      "skill": "security-audit-for-saas",
+      "marker": "references/KERNEL.md"
+    },
+    {
+      "id": "openai-security-threat-model",
+      "role": "domain",
+      "required": false,
+      "provides": "A design-level threat model of the system: assets, entry points, trust boundaries, abuse paths.",
+      "licence": "See LICENSE.txt in the installed skill",
+      "skill": "security-threat-model",
+      "marker": "SKILL.md"
+    },
+    {
+      "id": "openai-security-best-practices",
+      "role": "domain",
+      "required": false,
+      "provides": "Framework checklists for common web stacks, used as reference material by hunters.",
+      "licence": "See LICENSE.txt in the installed skill",
+      "skill": "security-best-practices",
+      "marker": "SKILL.md"
+    }
+  ],
+  "modes": [
+    { "mode": "full", "needs": ["jsm-security-audit-for-saas"] },
+    { "mode": "open", "needs": [] }
+  ],
+  "fragments": [
+    {
+      "id": "postgres-supabase",
+      "file": "fragments/postgres-supabase.md",
+      "applies": ["supabase/**", "**/*.sql"],
+      "covers": ["database access", "deployed state"]
+    },
+    {
+      "id": "ci-deploy-credentials",
+      "file": "fragments/ci-deploy-credentials.md",
+      "applies": [".github/workflows/*.yml", ".github/workflows/*.yaml"],
+      "covers": ["continuous integration", "deploy credentials"]
+    },
+    {
+      "id": "agent-configuration",
+      "file": "fragments/agent-configuration.md",
+      "applies": [".claude/**", ".mcp.json", ".cursor/**", ".codex/**", "AGENTS.md", "CLAUDE.md", "**/SKILL.md", "**/AGENTS.md", "**/CLAUDE.md"],
+      "covers": ["agent configuration"]
+    }
+  ]
+}

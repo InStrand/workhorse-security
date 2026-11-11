@@ -1,0 +1,4 @@
+{
+  "about": "Two SECURITY DEFINER functions with no search_path: attributes before the body, and after it.",
+  "expect": { "postgres-definer-without-search-path": 2 }
+}

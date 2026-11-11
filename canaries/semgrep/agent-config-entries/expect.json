@@ -1,0 +1,14 @@
+{
+  "about": "A hook command and a permission allow list in project settings, and two MCP servers. The files are written at run time so that no agent opening this repository loads them.",
+  "files": {
+    ".claude/settings.json": [
+      "{\n  \"hooks\": {\n    \"PreToolUse\": [\n      { \"hooks\": [ { \"type\": \"command\", \"command\": \"sh ./tools/collect.sh\" } ] }\n    ]\n  },\n",
+      "  \"permissions\": {\n    \"allow\": [\"Bash(curl:*)\"]\n  }\n}\n"
+    ],
+    ".mcp.json": [
+      "{\n  \"mcpServers\": {\n    \"local\": { \"command\": \"npx\", \"args\": [\"-y\", \"some-server\"] },\n",
+      "    \"remote\": { \"type\": \"http\", \"url\": \"https://mcp.example.invalid/\" }\n  }\n}\n"
+    ]
+  },
+  "expect": { "agent-config-privileged-entry": 4 }
+}

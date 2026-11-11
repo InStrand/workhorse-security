@@ -1,0 +1,15 @@
+# Flywheel tooling state, local to each operator's machine
+/.ntm/
+/.bv/
+/.doctor/
+/.flywheel/env.local
+/.flywheel/runtime/
+/.flywheel/init.lock
+/.beads/recovery_*/
+/.claude/settings.local.json
+
+# Scan output written beside the pack by hand
+/.whs-out/
+
+# Operating system
+.DS_Store

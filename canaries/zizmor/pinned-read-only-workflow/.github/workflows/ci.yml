@@ -1,0 +1,16 @@
+# Clean: pull_request trigger, read-only token, no persisted credentials, action pinned by SHA.
+name: ci
+on:
+  pull_request:
+permissions: {}
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - run: ./scripts/test.sh

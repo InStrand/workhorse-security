@@ -1,0 +1,4 @@
+{
+  "about": "SECURITY DEFINER definitions that set search_path inline, after the body, or by ALTER in the same file.",
+  "expect": {}
+}

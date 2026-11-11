@@ -1,0 +1,4 @@
+{
+  "about": "Three grants to the anonymous role: a function, a table across several lines, and default privileges.",
+  "expect": { "postgres-grant-to-anon": 3 }
+}

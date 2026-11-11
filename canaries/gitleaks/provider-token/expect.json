@@ -1,0 +1,10 @@
+{
+  "about": "A token in a provider's format, in an environment file. The file is written at run time from two parts, so the token never exists in this repository's history.",
+  "files": {
+    "deploy/.env.production": [
+      "DATABASE_URL=postgres://app@db.example.invalid:5432/app\n",
+      "GITHUB_TOKEN=ghp_", "x7Kq2Lm9Rt4Vb8Nc3Zp6Wd1Yf5Hj0Gs7Ae2U", "\n"
+    ]
+  },
+  "expect": { "github-pat": 1 }
+}

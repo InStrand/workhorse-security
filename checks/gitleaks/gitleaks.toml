@@ -1,0 +1,6 @@
+title = "workhorse-security secret scan"
+
+# The default gitleaks rules. A scanned repository's own gitleaks config, ignore file and inline
+# allow comments are not read: its exceptions live in security/config.json.
+[extend]
+useDefault = true

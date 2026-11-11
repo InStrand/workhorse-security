@@ -1,0 +1,5 @@
+{
+  "about": "A pull_request_target workflow that checks out the pull request's head, expands the title into a shell command and holds a secret.",
+  "expect": { "dangerous-triggers": 1, "template-injection": 1 },
+  "allow_other_rules": true
+}

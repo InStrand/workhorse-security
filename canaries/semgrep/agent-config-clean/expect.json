@@ -1,0 +1,12 @@
+{
+  "about": "Project settings with no hook, server or allow entry, and a JSON file outside the agent configuration paths that uses the same keys.",
+  "files": {
+    ".claude/settings.json": [
+      "{\n  \"permissions\": {\n    \"deny\": [\"Read(./.env)\"]\n  },\n  \"includeCoAuthoredBy\": false\n}\n"
+    ],
+    "package.json": [
+      "{\n  \"name\": \"fixture\",\n  \"scripts\": { \"command\": \"echo ok\" },\n  \"homepage\": { \"url\": \"https://example.invalid/\" }\n}\n"
+    ]
+  },
+  "expect": {}
+}
