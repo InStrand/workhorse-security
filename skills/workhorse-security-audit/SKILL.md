@@ -115,6 +115,8 @@ This step is how the standard improves. For each confirmed finding:
 
 Mark each bead with who must act, so that the fix can start: an agent through a pull request; the repository's owner through a platform setting; or a decision by the owner first.
 
+State the fix rule on each finding bead: a fix must not change behaviour for legitimate users. The fix carries a statement of what stays identical for them and what changes only on the path the finding names, with tests before and after.
+
 ## Step 8. Report to the operator
 
 Short: counts by verdict and severity; the coverage statement (mode, what was not available, what was not read, units deferred or blocked); where the record is; the beads created; the decisions that are the operator's or the customer's.

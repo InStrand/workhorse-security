@@ -223,6 +223,8 @@ This is the loop, and it is the same for Layer B and Layer D (sections 7 and 8).
 5. **Verify and close.** The bead closes when a later scan of the deployed revision no longer reports the fingerprint (SARIF `baselineState: absent`) and the fixing commit is deployed. Nobody closes a security bead by hand.
 6. **Report.** `REPORT.md` to `docs/reviews/<date>-security-audit.md`. A daily list of overdue items by severity, and a monthly summary: found, fixed, accepted, overdue, per repository.
 
+The fix rule (owner, 11 Nov): a fix must not change behaviour for legitimate users. It states what stays identical for them and what changes only on the path the finding names, and proves it with tests before and after.
+
 Each bead says who must act, so that the fix can start: an agent through a pull request, the repository's owner through a platform setting, or a decision by the owner first. On 11 November the pack finds and recommends. Fixing runs through the flywheel as ordinary beads, and nothing in the pack automates it yet.
 
 Two more steps apply to every confirmed finding. A variant hunt searches the estate for the same root cause, and what it finds joins the same bead. For a confirmed critical or high finding, a second bead asks whether it was used: which logs would show it and how long they are kept. Sign-in and session tables should carry the IP address and user agent so that the question can be answered.
